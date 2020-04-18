@@ -1,0 +1,655 @@
+{UTF-8}
+Mining Revenues=
+	(Revenues from Subsidy+Historic Revenues from Transaction Fees)*Historic BTC Price
+	~	$/Day
+	~		|
+
+Noise Standard Deviation=
+	0.02
+	~	Dimensionless
+	~	The standard deviation in the random noise.  The random fluctuation is \
+		drawn from a normal distribution with min and max values of +/-  4.  The \
+		user can also specify the random number seed to replicate simulations.  To \
+		generate a different random number sequence, change the random number seed.
+	|
+
+Noise Start Time=
+	4112
+	~	Day
+	~	The time at which the random noise in the input begins.
+	|
+
+Pulse Quantity=
+	0
+	~	Dimensionless*Day
+	~	The quantity added to the input at the pulse time.
+	|
+
+Sine Amplitude=
+	0
+	~	Dimensionless
+	~	The amplitude of the sine wave in the input.
+	|
+
+Sine Period=
+	10
+	~	Day
+	~	The period of the sine wave in the input.
+	|
+
+Noise Seed=
+	1000
+	~	Dimensionless
+	~	Varying the random number seed changes the sequence of realizations for \
+		the random variable.
+	|
+
+Ramp Start Time=
+	0
+	~	Day
+	~	The time at which the ramp in the input begins.
+	|
+
+Input=
+	1+STEP(Step Height,Step Time)+
+	(Pulse Quantity/TIME STEP)*PULSE(Pulse Time,TIME STEP)+
+	RAMP(Ramp Slope,Ramp Start Time,Ramp End Time)+STEP(1,Exponential Growth Time)*(EXP(\
+		Exponential Growth Rate*Time)-1)+
+	STEP(1,Sine Start Time)*Sine Amplitude*SIN(2*3.14159*Time/Sine Period)+STEP(1,Noise Start Time\
+		)*RANDOM NORMAL( -4 , 4 , 0 , Noise Standard Deviation , Noise Seed )
+	~	Dimensionless
+	~	The test input can be configured to generate a step, pulse, linear ramp, \
+		exponential growth, sine wave, and random variation.  The initial value of \
+		the input is 1 and each test input begins at a particular start time.  The \
+		magnitudes are expressed as fractions of the initial value.
+	|
+
+Step Height=
+	0
+	~	Dimensionless
+	~	The height of the step increase in the input.
+	|
+
+Pulse Time=
+	0
+	~	Day
+	~	The time at which the pulse increase in the input occurs.
+	|
+
+Exponential Growth Rate=
+	0
+	~	1/Day
+	~	The exponential growth rate in the input.
+	|
+
+Exponential Growth Time=
+	0
+	~	Day
+	~	The time at which the exponential growth in the input begins.
+	|
+
+Sine Start Time=
+	0
+	~	Day
+	~	The time at which the sine wave fluctuation in the input begins.
+	|
+
+Ramp Slope=
+	0
+	~	1/Day
+	~	The slope of the linear ramp in the input.
+	|
+
+Step Time=
+	0
+	~	Day
+	~	The time at which the step increase in the input occurs.
+	|
+
+Ramp End Time=
+	1e+09
+	~	Day
+	~	The end time for the ramp input.
+	|
+
+Epochs boundary=
+	3777
+	~	Day [3000,4000,100]
+	~		|
+
+Epoch 1=
+	1482
+	~	Day
+	~		|
+
+Hash Rate Adjustment Time=
+	IF THEN ELSE(Time<Epochs boundary, Epoch 1 , Epoch 2)
+	~	Day
+	~		|
+
+Epoch 2=
+	264
+	~	Day [0,1000,100]
+	~		|
+
+Daily Hashes=
+	Hash Rate*Day to Second
+	~	GH/Day
+	~		|
+
+Day to Second=
+	3600*24
+	~	s/Day
+	~		|
+
+Hash Rate Shortfall=
+	(Mining Profit/Cost of Energy*Energy Efficiency of State Of The Art Mining Hardware/\
+		Day to Second)
+	~	GH/s
+	~		|
+
+"Hash Rate TH/s"=
+	Hash Rate/Giga to Tera
+	~	TH/s
+	~		|
+
+Giga to Tera=
+	1000
+	~	GH/TH
+	~		|
+
+Target Block Creation Rate=
+	Day to Second/TARGET BLOCK GENERATION TIME
+	~	block/Day
+	~		|
+
+TARGET BLOCK GENERATION TIME=
+	600
+	~	s/block
+	~		|
+
+Revenues from Subsidy=
+	Target Block Creation Rate*BTC Subsidy per Mined Block
+	~	BTC/Day
+	~		|
+
+BTC Creation Rate=
+	Target Block Creation Rate*BTC Subsidy per Mined Block
+	~	BTC/Day
+	~		|
+
+Target Height of the Blockchain= INTEG (
+	Target Block Creation Rate,
+		0)
+	~	block
+	~		|
+
+Hash Rate= INTEG (
+	Net Inflow of Hash Rate,
+		SATOSHI'S INITIAL HASH RATE)
+	~	GH/s
+	~	For an estimation of the initial value, see: \
+		http://organofcorti.blogspot.ch/2014/08/167-satoshis-hashrate.html
+	|
+
+SATOSHI'S INITIAL HASH RATE=
+	0.007
+	~	GH/s
+	~		|
+
+Hashing Cost=
+	Cost of Energy/Energy Efficiency of State Of The Art Mining Hardware
+	~	$/GH
+	~		|
+
+Historic Revenues from Transaction Fees:INTERPOLATE::=
+	GET XLS DATA('bitcoin_data.xlsx', 'historic_tx_fees_BTC' , 'B' , 'C2' )
+	~	BTC/Day
+	~		|
+
+Historic BTC in Circulation:INTERPOLATE::=
+	GET XLS DATA('bitcoin_data.xlsx', 'historic_BTC_in_circulation' , 'B' , 'C2' )
+	~	block
+	~		|
+
+Historic Height of the Blockchain:INTERPOLATE::=
+	GET XLS DATA('bitcoin_data.xlsx', 'historic_blockchain_height' , 'A' , 'B2' )
+	~	block
+	~		|
+
+STANDARD TRANSACTION FEE=
+	0.0001
+	~	BTC
+	~		|
+
+GH to H=
+	1e+09
+	~	(H/s)/(GH/s)
+	~	Conversion factor from Gigahashes/s to Hashes/s
+	|
+
+Historic BTC Price:INTERPOLATE::=
+	GET XLS DATA('bitcoin_data.xlsx', 'BTC_actual_price' , 'B' , 'C2' )
+	~	$/BTC
+	~		|
+
+Historic Hash Rate:INTERPOLATE::=
+	GET XLS DATA('bitcoin_data.xlsx', 'actual_hash_rate' , 'B' , 'D2' )
+	~	GH/s
+	~		|
+
+Energy Efficiency of State Of The Art Mining Hardware :INTERPOLATE::=
+	GET XLS DATA('bitcoin_data.xlsx', 'mining_hw_energy_eff' , 'B' , 'D2' )
+	~	GH/J
+	~		|
+
+Net Inflow of Hash Rate=
+	Hash Rate Shortfall/Hash Rate Adjustment Time
+	~	GH/s/Day
+	~		|
+
+Mining Profit=
+	Mining Revenues-Mining Cost
+	~	$/Day
+	~		|
+
+Mining Cost=
+	Hashing Cost*Daily Hashes
+	~	$/Day
+	~		|
+
+Cost of Energy=
+	0.05*1/3.6e+06
+	~	$/J
+	~	Value before conversion factor is in $/kWh
+		Conversion factor from $/kWh to $/J = 1/3.6e+006
+	|
+
+INITIAL MINING SUBSIDY=
+	50
+	~	BTC/block
+	~		|
+
+SATOSHI=
+	1e-08
+	~	BTC/block
+	~		|
+
+MAXIMUM SIZE OF A BLOCK=
+	1
+	~	MB/block
+	~		|
+
+MAXIMUM HALVINGS=
+	MIN( 64 , LOG(INITIAL MINING SUBSIDY/SATOSHI, 2 ) )
+	~	Dimensionless
+	~		|
+
+BTC in Circulation= INTEG (
+	BTC Creation Rate,
+		0)
+	~	BTC
+	~		|
+
+BTC Subsidy per Mined Block=
+	IF THEN ELSE( INTEGER( Target Height of the Blockchain / SUBSIDY HALVING INTERVAL)<MAXIMUM HALVINGS\
+		 , INITIAL MINING SUBSIDY/2^(INTEGER( Target Height of the Blockchain / SUBSIDY HALVING INTERVAL\
+		)), 0 )
+	~	BTC/block
+	~		|
+
+SUBSIDY HALVING INTERVAL=
+	210000
+	~	block
+	~		|
+
+Total BTC= INTEG (
+	-BTC Creation Rate,
+		2.1e+07)
+	~	BTC
+	~		|
+
+********************************************************
+	.Control
+********************************************************~
+		Simulation Control Parameters
+	|
+
+FINAL TIME  = 7500
+	~	Day
+	~	The final time for the simulation.
+	|
+
+INITIAL TIME  = 0
+	~	Day
+	~	The initial time for the simulation.
+	|
+
+SAVEPER  = 
+        TIME STEP
+	~	Day [0,?]
+	~	The frequency with which output is stored.
+	|
+
+TIME STEP  = 0.5
+	~	Day [0,?]
+	~	The time step for the simulation.
+	|
+
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*BTC Creation
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,90,0
+10,1,Total BTC,222,414,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,2,TARGET BLOCK GENERATION TIME,140,241,93,23,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,3,BTC in Circulation,490,413,52,20,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,4,6,3,4,0,0,22,0,0,0,-1--1--1,,1|(397,413)|
+1,5,6,1,100,0,0,22,0,0,0,-1--1--1,,1|(302,413)|
+11,6,1806,350,413,7,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,7,BTC Creation Rate,350,443,57,23,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,8,Target Height of the Blockchain,523,279,73,23,3,131,0,0,0,0,0,0,0,0,0,0,0,0
+12,9,48,239,277,26,15,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,10,12,8,4,0,0,22,0,0,0,-1--1--1,,1|(403,277)|
+1,11,12,9,100,0,0,22,0,0,0,-1--1--1,,1|(304,277)|
+11,12,48,350,277,7,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,13,Target Block Creation Rate,350,305,71,20,40,131,0,0,-1,0,0,0,0,0,0,0,0,0
+1,14,13,7,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(318,363)|
+10,15,BTC Subsidy per Mined Block,566,513,72,23,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,16,15,7,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(432,529)|
+1,17,8,15,1,0,45,0,2,0,0,-1--1--1,|12||0-0-0,1|(636,395)|
+10,18,SUBSIDY HALVING INTERVAL,447,661,101,27,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,19,18,15,1,0,45,0,2,0,0,-1--1--1,|12||0-0-0,1|(548,593)|
+10,20,MAXIMUM HALVINGS,772,605,107,20,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,21,20,15,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(626,583)|
+10,22,SATOSHI,840,714,43,12,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,23,INITIAL MINING SUBSIDY,772,446,77,23,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,24,23,15,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(646,465)|
+1,25,23,20,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(826,513)|
+1,26,22,20,1,0,45,0,2,0,0,-1--1--1,|12||0-0-0,1|(775,671)|
+12,27,0,194,45,143,31,8,135,0,24,-1,0,0,0,-1--1--1,0-0-0,|20|B|0-0-0,0,0,0,0,0,0
+Bitcoin Creation
+10,28,Historic BTC in Circulation,1290,130,89,31,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,29,Historic Height of the Blockchain,1298,213,91,31,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+12,30,0,1295,47,143,31,3,135,0,24,-1,0,0,0,-1--1--1,0-0-0,|16|B|0-0-0,0,0,0,0,0,0
+Data for Model Correlation
+1,31,2,13,1,0,45,0,2,0,0,-1--1--1,|12||0-0-0,1|(291,227)|
+12,32,0,974,47,143,31,3,135,0,24,-1,0,0,0,-1--1--1,0-0-0,|16|B|0-0-0,0,0,0,0,0,0
+Parameters
+10,33,MAXIMUM SIZE OF A BLOCK,974,117,148,23,8,131,0,0,-1,0,0,0,0,0,0,0,0,0
+10,34,Day to Second,414,143,59,11,8,2,1,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,35,34,12,0,1,0,0,0,128,0,-1--1--1,,1|(384,205)|
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Hashing Power Adjustment
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,88,0
+10,1,Daily Hashes,687,208,55,12,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,2,Cost of Energy,1035,284,57,24,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,3,Mining Cost,760,372,43,23,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,4,Mining Revenues,719,528,41,23,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,5,Mining Profit,595,444,55,12,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,6,4,5,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(623,512)|
+1,7,3,5,1,0,45,0,2,0,0,-1--1--1,|12||0-0-0,1|(700,421)|
+10,8,Revenues from Subsidy,861,745,80,27,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,9,Target Block Creation Rate,745,832,69,23,8,2,1,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,10,9,8,0,1,0,0,0,64,0,-1--1--1,,1|(794,794)|
+10,11,BTC Subsidy per Mined Block,937,836,79,23,8,2,1,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,12,11,8,0,1,0,0,0,64,0,-1--1--1,,1|(905,797)|
+1,13,8,4,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(732,644)|
+10,14,Hash Rate,509,199,40,20,3,3,0,0,0,0,0,0,0,0,0,0,0,0
+12,15,48,240,191,26,15,0,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,16,18,14,4,0,0,22,0,0,0,-1--1--1,,1|(418,189)|
+1,17,18,15,100,0,0,22,0,0,0,-1--1--1,,1|(309,189)|
+11,18,48,360,189,7,8,34,3,0,0,1,0,0,0,0,0,0,0,0,0
+10,19,Net Inflow of Hash Rate,360,220,64,23,40,3,0,0,-1,0,0,0,0,0,0,0,0,0
+10,20,Hash Rate Adjustment Time,236,275,77,23,8,3,0,16,-1,0,0,0,-1--1--1,0-0-0,|12|BU|0-0-0,0,0,0,0,0,0
+1,21,14,1,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(580,169)|
+10,22,Hash Rate Shortfall,432,360,104,25,8,131,0,0,-1,0,0,0,0,0,0,0,0,0
+1,23,5,22,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(489,427)|
+1,24,20,19,1,0,45,0,2,0,0,-1--1--1,|12||0-0-0,1|(322,267)|
+1,25,22,19,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(372,292)|
+10,26,Energy Efficiency of State Of The Art Mining Hardware,1064,193,135,27,8,131,0,20,0,0,0,0,-1--1--1,192-192-192,|12|B|128-0-64,0,0,0,0,0,0
+10,27,Historic BTC Price,981,471,91,23,8,131,0,20,0,0,0,0,-1--1--1,192-192-192,|12|B|128-0-64,0,0,0,0,0,0
+1,28,27,4,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(809,479)|
+10,29,Historic Hash Rate,1701,119,103,23,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+10,30,STANDARD TRANSACTION FEE,1365,121,111,25,8,131,0,0,-1,0,0,0,0,0,0,0,0,0
+10,31,Historic Revenues from Transaction Fees,916,656,117,28,8,131,0,20,0,0,0,0,-1--1--1,192-192-192,|12|B|128-0-64,0,0,0,0,0,0
+12,32,0,1692,59,143,31,3,135,0,24,-1,0,0,0,-1--1--1,0-0-0,|16|B|0-0-0,0,0,0,0,0,0
+Data for Model Correlation
+10,33,Hashing Cost,868,291,73,20,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,34,2,33,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(968,315)|
+1,35,26,33,1,0,45,0,2,0,0,-1--1--1,|12||0-0-0,1|(920,236)|
+1,36,33,3,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(784,315)|
+1,37,1,3,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(751,276)|
+12,38,0,1359,56,143,31,3,135,0,24,-1,0,0,0,-1--1--1,0-0-0,|16|B|0-0-0,0,0,0,0,0,0
+Parameters
+1,39,31,4,1,0,43,0,2,0,0,-1--1--1,|12||0-0-0,1|(744,593)|
+10,40,SATOSHI,1736,933,55,12,8,2,2,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+12,41,0,608,312,73,73,4,135,0,16,-1,0,0,0,-1--1--1,0-0-0,|12|B|0-0-0,0,0,0,0,0,0
+Hashing Rate Adjustment Loop
+10,42,Time,1737,888,35,12,8,2,2,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,43,SATOSHI'S INITIAL HASH RATE,1371,173,103,23,8,131,0,0,0,0,0,0,0,0,0,0,0,0
+1,44,43,14,0,0,0,0,0,64,1,-1--1--1,,1|(915,186)|
+10,45,"Hash Rate TH/s",644,96,51,11,8,3,2,0,0,0,0,0,0,0,0,0,0,0
+1,46,14,45,0,2,0,0,0,128,0,-1--1--1,,1|(576,147)|
+10,47,Cost of Energy,300,415,59,11,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,48,47,22,0,0,0,0,0,128,0,-1--1--1,,1|(342,397)|
+10,49,Energy Efficiency of State Of The Art Mining Hardware,380,471,87,28,8,2,0,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,50,49,22,0,0,0,0,0,128,0,-1--1--1,,1|(403,420)|
+12,51,0,343,-24,208,44,8,135,0,24,-1,0,0,0,-1--1--1,0-0-0,|30|B|0-0-0,0,0,0,0,0,0
+Hash Rate Adjustment
+10,52,Time,244,336,27,11,8,2,2,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+10,53,Day to Second,740,124,51,11,8,3,2,0,0,0,0,0,0,0,0,0,0,0
+1,54,53,1,0,2,0,0,0,128,0,-1--1--1,,1|(717,159)|
+10,55,Day to Second,168,379,59,11,8,2,2,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,56,55,22,0,2,0,0,0,128,0,-1--1--1,,1|(270,371)|
+10,57,Giga to Tera,505,31,43,11,8,3,2,0,0,0,0,0,0,0,0,0,0,0
+1,58,57,45,0,2,0,0,0,128,0,-1--1--1,,1|(567,60)|
+10,59,Time,168,315,26,11,8,2,2,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+1,60,59,20,0,2,0,0,0,64,0,-1--1--1,,1|(184,304)|
+10,61,Epoch 1,108,221,28,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+10,62,Epoch 2,105,320,28,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,63,61,20,0,0,0,0,0,128,0,-1--1--1,,1|(151,239)|
+1,64,62,20,0,0,0,0,0,128,0,-1--1--1,,1|(144,306)|
+10,65,Epochs boundary,74,271,55,11,8,3,0,0,0,0,0,0,0,0,0,0,0,0
+1,66,65,20,0,0,0,0,0,128,0,-1--1--1,,1|(137,272)|
+10,67,Time,639,589,26,11,8,2,2,3,-1,0,0,0,128-128-128,0-0-0,|12||128-128-128,0,0,0,0,0,0
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*Dashboard
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,88,0
+12,1,3212344,401,187,309,182,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+BTC_Price_in_USD
+12,2,3212352,1042,189,313,179,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Reveues_From_Transaction_Fees
+12,3,2360118,398,572,310,185,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Hash_Rate_1
+12,4,2360116,1041,571,311,183,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Hash_Rate_2
+12,5,1180430,396,973,311,193,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Hash_Rate_Shortfall
+12,6,1180428,1043,974,309,195,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Mining_Profit
+12,7,1180292,1043,1360,311,174,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Mining_Profit_Future
+12,8,1180426,1685,189,298,179,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Height_of_the_Blockchain
+12,9,1180304,1700,1363,311,172,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Hash_Rate_4
+12,10,2098014,396,1363,308,170,3,188,0,0,1,0,0,0,0,0,0,0,0,0
+Hash_Rate_Shortfall_Future
+\\\---/// Sketch information - do not modify anything except names
+V300  Do not put anything below this section - it will be ignored
+*View 4
+$192-192-192,0,Times New Roman|12||0-0-0|0-0-0|0-0-255|-1--1--1|-1--1--1|96,96,88,0
+10,1,Input,316,188,22,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,2,Time,67,171,30,11,0,2,0,51,-1,0,0,0,128-128-128,0-0-0,Helvetica|16|B|128-128-128,0,0,0,0,0,0
+10,3,Step Time,73,120,40,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,4,Step Height,123,85,47,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,5,Pulse Time,188,57,44,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,6,Pulse Quantity,273,35,58,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,7,TIME STEP,69,231,54,11,0,2,0,51,-1,0,0,0,128-128-128,0-0-0,Helvetica|16|B|128-128-128,0,0,0,0,0,0
+10,8,Sine Amplitude,424,37,60,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,9,Sine Period,512,76,46,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,10,Ramp Slope,207,364,49,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,11,Ramp Start Time,128,328,65,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,12,Ramp End Time,83,284,63,11,0,3,0,48,-1,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+1,13,2,1,0,0,0,0,0,0,0,-1--1--1,,1|(188,179)|
+1,14,7,1,0,0,0,0,0,0,0,-1--1--1,,1|(201,207)|
+1,15,3,1,0,0,0,0,0,0,0,-1--1--1,,1|(196,154)|
+1,16,4,1,0,0,0,0,0,0,0,-1--1--1,,1|(212,133)|
+1,17,5,1,0,0,0,0,0,0,0,-1--1--1,,1|(246,117)|
+1,18,6,1,0,0,0,0,0,0,0,-1--1--1,,1|(292,104)|
+1,19,8,1,0,0,0,0,0,0,0,-1--1--1,,1|(374,106)|
+1,20,9,1,0,0,0,0,0,0,0,-1--1--1,,1|(420,128)|
+1,21,10,1,0,0,0,0,0,0,0,-1--1--1,,1|(257,281)|
+1,22,11,1,0,0,0,0,0,0,0,-1--1--1,,1|(215,262)|
+1,23,12,1,0,0,0,0,0,0,0,-1--1--1,,1|(195,237)|
+10,24,Exponential Growth Rate,565,180,50,19,8,3,0,48,0,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,25,Exponential Growth Time,551,241,52,19,8,3,0,48,0,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+1,26,24,1,0,0,0,0,0,64,0,-1--1--1,,1|(433,183)|
+1,27,25,1,0,0,0,0,0,64,0,-1--1--1,,1|(425,212)|
+10,28,Noise Start Time,528,297,45,19,8,3,0,48,0,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+10,29,Noise Standard Deviation,449,347,62,19,8,3,0,48,0,0,0,0,0-0-0,0-0-0,Helvetica|12|B|0-0-0,0,0,0,0,0,0
+1,30,28,1,0,0,0,0,0,64,0,-1--1--1,,1|(420,241)|
+1,31,29,1,0,0,0,0,0,64,0,-1--1--1,,1|(384,268)|
+10,32,Noise Seed,335,369,46,11,8,3,0,48,-1,0,0,0,128-128-128,0-0-0,Helvetica|12|B|128-128-128,0,0,0,0,0,0
+1,33,32,1,0,0,0,0,0,0,0,-1--1--1,,1|(326,285)|
+10,34,Sine Start Time,556,121,49,11,8,3,0,0,-1,0,0,0,0,0,0,0,0,0
+1,35,34,1,0,0,0,0,0,0,0,-1--1--1,,1|(434,154)|
+///---\\\
+:GRAPH Hash_Rate_1
+:TITLE Hash Rate
+:X-MIN 1500
+:X-MAX 2500
+:SCALE
+:VAR Hash Rate
+:VAR Historic Hash Rate
+
+:GRAPH Hash_Rate_2
+:TITLE Hash Rate
+:X-MIN 2500
+:X-MAX 4100
+:SCALE
+:VAR Hash Rate
+:VAR Historic Hash Rate
+
+:GRAPH BTC_Price_in_USD
+:TITLE BTC Price
+:X-AXIS Time
+:X-LABEL Time
+:X-DIV 13
+:X-MIN 1500
+:X-MAX 4100
+:SCALE
+:VAR Historic BTC Price|USD
+
+:GRAPH Reveues_From_Transaction_Fees
+:TITLE Reveues From Transaction Fees
+:X-AXIS Time
+:X-LABEL Time (Day)
+:X-DIV 13
+:X-MIN 1500
+:X-MAX 4100
+:SCALE
+:VAR Historic Revenues from Transaction Fees|BTC
+
+:GRAPH Mining_Profit
+:TITLE Mining Economy
+:X-AXIS Time
+:X-LABEL Time (Day)
+:X-DIV 13
+:Y-DIV 12
+:X-MIN 1500
+:X-MAX 4100
+:SCALE
+:VAR Mining Revenues
+:UNITS $/day
+:Y-MIN -1e+07
+:Y-MAX 5e+07
+:VAR Mining Cost
+:VAR Mining Profit
+
+:GRAPH Hash_Rate_Shortfall
+:TITLE Hash Rate Shortfall
+:X-AXIS Time
+:X-LABEL Time (Day)
+:X-DIV 13
+:Y-DIV 15
+:X-MIN 1500
+:X-MAX 4100
+:SCALE
+:VAR Hash Rate Shortfall|GH/s
+:Y-MIN -3e+10
+:Y-MAX 4.2e+11
+
+:GRAPH Mining_Profit_Future
+:TITLE Mining Economy (Future)
+:X-AXIS Time
+:X-LABEL Time (Day)
+:Y-DIV 10
+:X-MIN 4100
+:SCALE
+:VAR Mining Revenues
+:UNITS $/day
+:Y-MIN -7.5e+06
+:Y-MAX 1.75e+07
+:VAR Mining Cost
+:VAR Mining Profit
+
+:GRAPH Hash_Rate_Shortfall_Future
+:TITLE Hash Rate Shortfall (Future)
+:Y-DIV 12
+:X-MIN 4100
+:SCALE
+:VAR Hash Rate Shortfall
+:Y-MIN -6e+10
+:Y-MAX 3e+10
+
+:GRAPH Height_of_the_Blockchain
+:TITLE Height of the Blockchain
+:X-MAX 4100
+:SCALE
+:VAR Target Height of the Blockchain
+:VAR Historic Height of the Blockchain
+
+:GRAPH Hash_Rate_4
+:TITLE Hash Rate
+:Y-DIV 12
+:X-MIN 2500
+:SCALE
+:VAR Hash Rate
+:Y-MIN 0
+:Y-MAX 1.2e+11
+:L<%^E!@
+1:Simulation_noiseless.vdfx
+9:Simulation_noiseless
+11:bitcoin2.voc
+12:opt.VPD
+23:0
+15:1,0,0,1,0,0
+19:88,2
+27:2,
+34:0,
+4:Time
+5:Hash Rate
+35:Date
+36:YYYY-MM-DD
+37:2009
+38:1
+39:3
+40:4
+41:0
+42:1
+72:0
+73:0
+76:0
+77:0
+78:0
+79:0
+80:0
+81:0
+24:0
+25:7500
+26:7500
+75:
+43:
